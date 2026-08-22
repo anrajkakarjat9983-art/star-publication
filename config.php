@@ -132,10 +132,10 @@ $conn->query(
 // Seed the default admin account once
 $chk = $conn->query('SELECT COUNT(*) AS c FROM admins');
 if ($chk && (int)$chk->fetch_assoc()['c'] === 0) {
-    $hash = password_hash('admin123', PASSWORD_DEFAULT);
+    $hash = password_hash(env_or('ADMIN_PASS', 'admin123'), PASSWORD_DEFAULT);
     $ins = $conn->prepare('INSERT INTO admins (name, email, password_hash) VALUES (?, ?, ?)');
     $adminName = 'Administrator';
-    $adminMail = 'admin@starpublication.in';
+    $adminMail = env_or('ADMIN_EMAIL', 'admin@starpublication.in');
     $ins->bind_param('sss', $adminName, $adminMail, $hash);
     $ins->execute();
     $ins->close();
