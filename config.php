@@ -185,8 +185,11 @@ $conn->query(
 
 function settings_defaults(): array {
     return [
-        'upi_id'   => 'starpublication@upi',
-        'upi_name' => 'Star Publication',
+        'upi_id'        => 'starpublication@upi',
+        'upi_name'      => 'Star Publication',
+        'contact_phone' => '+91 98XXX XXXXX',
+        'contact_email'      => 'info@starpublication.in',
+        'contact_email2'     => 'support@starpublication.in',
     ];
 }
 

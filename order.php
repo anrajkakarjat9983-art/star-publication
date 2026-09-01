@@ -172,7 +172,7 @@ function upi_qr_url(string $upi, string $pn, string $amount, string $tn = ''): s
       <?php if ($status === 'rejected'): ?>
         <div class="flow-card" style="margin-bottom:22px;border-left:5px solid #a03030;">
           <h2>Previous request was not approved</h2>
-          <p>Please contact our team at +91 98XXX XXXXX for details, or place a fresh enquiry below.</p>
+          <p>Please contact our team at <?= htmlspecialchars((string)($SETTINGS['contact_phone'] ?? '+91 98XXX XXXXX')) ?> for details, or place a fresh enquiry below.</p>
         </div>
       <?php endif; ?>
       <div class="flow-card center-card reveal in">

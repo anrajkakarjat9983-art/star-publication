@@ -100,7 +100,7 @@ $lastReq = $qr->get_result()->fetch_assoc();
         </tbody>
       </table>
       <div class="profile-foot">
-        <p>Need a writing order? Call +91 98XXX XXXXX or email info@starpublication.in</p>
+        <p>Need a writing order? Call <?= htmlspecialchars((string)($SETTINGS['contact_phone'] ?? '+91 98XXX XXXXX')) ?> or email <?= htmlspecialchars((string)($SETTINGS['contact_email'] ?? 'info@starpublication.in')) ?></p>
         <a class="btn btn-primary btn-sm" href="order.php">Place an Enquiry</a>
       </div>
     </div>

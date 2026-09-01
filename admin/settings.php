@@ -17,6 +17,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $upiId   = trim((string)($_POST['upi_id'] ?? ''));
         $upiName = trim((string)($_POST['upi_name'] ?? ''));
+        $phone   = trim((string)($_POST['contact_phone'] ?? ''));
+        $email   = trim((string)($_POST['contact_email'] ?? ''));
+        $email2  = trim((string)($_POST['contact_email2'] ?? ''));
 
         $errors = [];
         if ($upiId === '' || !str_contains($upiId, '@')) {
@@ -24,6 +27,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         if ($upiName === '') {
             $errors[] = 'Enter the UPI display name.';
+        }
+        if ($phone === '') {
+            $errors[] = 'Enter the contact phone number.';
+        }
+        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'Enter a valid primary contact email.';
+        }
+        if ($email2 !== '' && !filter_var($email2, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'Enter a valid secondary contact email.';
         }
 
         // Optional QR image upload
@@ -52,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $msgType = 'error';
         } else {
             $upsert = $conn->prepare('INSERT INTO settings (k, v) VALUES (?, ?) ON DUPLICATE KEY UPDATE v = VALUES(v)');
-            $sets = ['upi_id' => $upiId, 'upi_name' => $upiName];
+            $sets = ['upi_id' => $upiId, 'upi_name' => $upiName, 'contact_phone' => $phone, 'contact_email' => $email, 'contact_email2' => $email2];
             if ($qrPath !== null) $sets['qr_path'] = $qrPath;
             $conn->query('START TRANSACTION');
             foreach ($sets as $k => $v) {
@@ -78,6 +90,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $upiId   = (string)($GLOBALS['SETTINGS']['upi_id'] ?? 'starpublication@upi');
 $upiName = (string)($GLOBALS['SETTINGS']['upi_name'] ?? 'Star Publication');
 $qrPath  = (string)($GLOBALS['SETTINGS']['qr_path'] ?? '');
+$cPhone  = (string)($GLOBALS['SETTINGS']['contact_phone'] ?? '+91 98XXX XXXXX');
+$cEmail  = (string)($GLOBALS['SETTINGS']['contact_email'] ?? 'info@starpublication.in');
+$cEmail2 = (string)($GLOBALS['SETTINGS']['contact_email2'] ?? 'support@starpublication.in');
 
 $adminName = htmlspecialchars((string)$_SESSION['admin_name']);
 ?>
@@ -129,8 +144,8 @@ $adminName = htmlspecialchars((string)$_SESSION['admin_name']);
 
 <header class="dash-hero">
   <div class="container">
-    <h1>QR &amp; <em>UPI Settings</em></h1>
-    <p>Update the UPI ID, display name, and QR code shown on payment pages.</p>
+    <h1>QR, UPI &amp; <em>Contact Settings</em></h1>
+    <p>Update the UPI ID, QR code, phone number, and email shown to clients.</p>
   </div>
 </header>
 
@@ -171,6 +186,25 @@ $adminName = htmlspecialchars((string)$_SESSION['admin_name']);
           <div>
             <strong>Current UPI ID:</strong> <code class="upi-id"><?= htmlspecialchars($upiId) ?></code><br>
             <strong>Name:</strong> <?= htmlspecialchars($upiName) ?>
+          </div>
+        </div>
+
+        <hr style="border:none;border-top:1px solid #e8edf6;margin:22px 0">
+        <h3 style="margin:0 0 6px">Contact details shown to clients</h3>
+        <p class="muted" style="margin-top:0">These appear on the homepage header/contact &amp; footer, the my-request page, and the processing/GST pages.</p>
+
+        <div class="set-grid">
+          <div class="set-field">
+            <label for="contact_phone">Phone Number</label>
+            <input type="text" id="contact_phone" name="contact_phone" value="<?= htmlspecialchars($cPhone) ?>" placeholder="+91 98XXX XXXXX" required>
+          </div>
+          <div class="set-field">
+            <label for="contact_email">Primary Email</label>
+            <input type="email" id="contact_email" name="contact_email" value="<?= htmlspecialchars($cEmail) ?>" placeholder="info@starpublication.in">
+          </div>
+          <div class="set-field">
+            <label for="contact_email2">Secondary Email</label>
+            <input type="email" id="contact_email2" name="contact_email2" value="<?= htmlspecialchars($cEmail2) ?>" placeholder="support@starpublication.in">
           </div>
         </div>
 

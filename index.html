@@ -38,11 +38,11 @@
       <div class="topbar-contact">
         <span class="topbar-item">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.4 2.1L8.1 10a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.6 1.9z"/></svg>
-          +91 98XXX XXXXX
+          <span data-fill="phone">+91 98XXX XXXXX</span>
         </span>
         <span class="topbar-item">
           <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
-          info@starpublication.in
+          <span data-fill="email">info@starpublication.in</span>
         </span>
       </div>
       <span class="topbar-note">Mon – Sat · 10:00 AM – 7:00 PM</span>
@@ -479,11 +479,11 @@
             </article>
             <article class="info-card">
               <span class="info-icon"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.4 2.1L8.1 10a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.6 1.9z"/></svg></span>
-              <div><h3>Phone</h3><p>+91 98XXX XXXXX<br>Mon–Sat, 10 AM – 7 PM</p></div>
+              <div><h3>Phone</h3><p><span data-fill="phone">+91 98XXX XXXXX</span><br>Mon–Sat, 10 AM – 7 PM</p></div>
             </article>
             <article class="info-card">
               <span class="info-icon"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg></span>
-              <div><h3>Email</h3><p>info@starpublication.in<br>support@starpublication.in</p></div>
+              <div><h3>Email</h3><p><span data-fill="email">info@starpublication.in</span><br><span data-fill="email2">support@starpublication.in</span></p></div>
             </article>
           </div>
 
@@ -547,8 +547,8 @@
       </nav>
       <div class="footer-col">
         <h3>Contact</h3>
-        <a href="tel:+919800000000">+91 98XXX XXXXX</a>
-        <a href="mailto:info@starpublication.in">info@starpublication.in</a>
+        <a data-fill-href="tel" href="tel:+919800000000"><span data-fill="phone">+91 98XXX XXXXX</span></a>
+        <a data-fill-href="mailto" href="mailto:info@starpublication.in"><span data-fill="email">info@starpublication.in</span></a>
         <p>[Your Office Address], City – PIN</p>
         <a class="btn btn-gold btn-sm" href="login.php">Client Login</a>
       </div>
@@ -650,6 +650,37 @@
     });
     modal.querySelectorAll('[data-modal-close]').forEach(function (b) { b.addEventListener('click', close); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && modal.classList.contains('open')) close(); });
+  })();
+  </script>
+  <script>
+  (function () {
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', 'api_settings.php', true);
+      xhr.onload = function () {
+        if (xhr.status !== 200) return;
+        var s = JSON.parse(xhr.responseText);
+        function strip(v) { return String(v || '').replace(/[^0-9+]/g, ''); }
+        document.querySelectorAll('[data-fill="phone"]').forEach(function (el) {
+          el.textContent = s.contact_phone || el.textContent;
+        });
+        document.querySelectorAll('[data-fill="email"]').forEach(function (el) {
+          el.textContent = s.contact_email || el.textContent;
+        });
+        document.querySelectorAll('[data-fill="email2"]').forEach(function (el) {
+          el.textContent = s.contact_email2 || el.textContent;
+        });
+        document.querySelectorAll('[data-fill-href="tel"]').forEach(function (a) {
+          var phone = s.contact_phone ? strip(s.contact_phone) : '';
+          if (phone) { a.setAttribute('href', 'tel:' + phone); a.querySelector('[data-fill="phone"]').textContent = s.contact_phone; }
+        });
+        document.querySelectorAll('[data-fill-href="mailto"]').forEach(function (a) {
+          var email = s.contact_email || '';
+          if (email) { a.setAttribute('href', 'mailto:' + email); a.querySelector('[data-fill="email"]').textContent = email; }
+        });
+      };
+      xhr.send();
+    } catch (e) {}
   })();
   </script>
 </body>
