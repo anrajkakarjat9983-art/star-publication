@@ -174,3 +174,36 @@ if ($chk && (int)$chk->fetch_assoc()['c'] === 0) {
     $ins->execute();
     $ins->close();
 }
+
+// Settings store (admin-editable UPI / QR details)
+$conn->query(
+    'CREATE TABLE IF NOT EXISTS settings (
+        k VARCHAR(64)  PRIMARY KEY,
+        v TEXT
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
+);
+
+function settings_defaults(): array {
+    return [
+        'upi_id'   => 'starpublication@upi',
+        'upi_name' => 'Star Publication',
+    ];
+}
+
+// Seed defaults + load current settings into $SETTINGS
+$GLOBALS['SETTINGS'] = settings_defaults();
+$seed = settings_defaults();
+$stmt = $conn->prepare('INSERT IGNORE INTO settings (k, v) VALUES (?, ?)');
+if ($stmt) {
+    foreach ($seed as $k => $v) {
+        $stmt->bind_param('ss', $k, $v);
+        $stmt->execute();
+    }
+    $stmt->close();
+}
+if ($res = $conn->query('SELECT k, v FROM settings')) {
+    while ($row = $res->fetch_assoc()) {
+        $GLOBALS['SETTINGS'][$row['k']] = $row['v'];
+    }
+}
+$SETTINGS = $GLOBALS['SETTINGS'];

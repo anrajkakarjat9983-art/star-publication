@@ -576,8 +576,8 @@
       <p class="muted">Pay ₹<span id="rgAmt2">499</span> via UPI (GPay / PhonePe / Paytm), then fill the details below. After submission you'll be taken to registration.</p>
 
       <div class="modal-qr-wrap">
-        <img id="rgQr" src="https://api.qrserver.com/v1/create-qr-code/?size=190x190&amp;data=upi%3A%2F%2Fpay%3Fpa%3Dstarpublication%40upi%26pn%3DStar%20Publication%26am%3D499%26cu%3DINR%26tn%3DRegistration%20Fee" alt="Registration QR code" width="190" height="190">
-        <code class="upi-id">starpublication@upi</code>
+        <img id="rgQr" data-regen="1" src="https://api.qrserver.com/v1/create-qr-code/?size=190x190&amp;data=upi%3A%2F%2Fpay%3Fpa%3Dstarpublication%40upi%26pn%3DStar%20Publication%26am%3D499%26cu%3DINR%26tn%3DRegistration%20Fee" alt="Registration QR code" width="190" height="190">
+        <code class="upi-id" id="rgUpiCode">starpublication@upi</code>
       </div>
 
       <form class="auth-form" method="post" action="register_pay.php" enctype="multipart/form-data" novalidate>
@@ -611,6 +611,28 @@
   (function () {
     var modal = document.getElementById('regPayModal');
     if (!modal) return;
+    var upiId = 'starpublication@upi';
+    var upiName = 'Star Publication';
+    var qrStatic = '';
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', 'api_settings.php', true);
+      xhr.onload = function () {
+        if (xhr.status === 200) {
+          var s = JSON.parse(xhr.responseText);
+          upiId = s.upi_id || upiId;
+          upiName = s.upi_name || upiName;
+          qrStatic = s.qr_path || '';
+          var code = document.getElementById('rgUpiCode');
+          if (code) code.textContent = upiId;
+          if (qrStatic) {
+            var img = document.getElementById('rgQr');
+            if (img) { img.src = qrStatic; img.setAttribute('data-regen', '0'); }
+          }
+        }
+      };
+      xhr.send();
+    } catch (e) {}
     function open() { modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); document.body.style.overflow = 'hidden'; }
     function close() { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); document.body.style.overflow = ''; }
     document.querySelectorAll('[data-modal-open]').forEach(function (b) {
@@ -619,7 +641,10 @@
         document.getElementById('rgAmt').textContent = amt;
         document.getElementById('rgAmt2').textContent = amt;
         document.getElementById('rgAmtVal').value = amt;
-        document.getElementById('rgQr').src = 'https://api.qrserver.com/v1/create-qr-code/?size=190x190&data=upi%3A%2F%2Fpay%3Fpa%3Dstarpublication%40upi%26pn%3DStar%20Publication%26am%3D' + amt + '%26cu%3DINR%26tn%3DRegistration%20Fee';
+        var img = document.getElementById('rgQr');
+        if (img && img.getAttribute('data-regen') === '1') {
+          img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=190x190&data=upi%3A%2F%2Fpay%3Fpa%3D' + encodeURIComponent(upiId) + '%26pn%3D' + encodeURIComponent(upiName) + '%26am%3D' + amt + '%26cu%3DINR%26tn%3DRegistration%20Fee';
+        }
         open();
       });
     });

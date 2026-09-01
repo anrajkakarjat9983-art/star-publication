@@ -111,7 +111,15 @@ if ($status === 'pending')           $deadline = strtotime($req['created_at']) +
 if ($status === 'payment_submitted') $deadline = strtotime($req['paid_at']) + WAIT_SECONDS;
 if ($status === 'gst_submitted')     $deadline = (isset($payG['created_at']) ? strtotime($payG['created_at']) : strtotime($req['paid_at'])) + WAIT_SECONDS;
 
-$qrLocal = __DIR__ . '/assets/img/company-qr.png';
+$qrLocal      = __DIR__ . '/assets/img/company-qr.png';
+$qrCustom     = (string)($SETTINGS['qr_path'] ?? '');
+$qrCustomFull = $qrCustom !== '' ? __DIR__ . '/' . $qrCustom : '';
+$upiId        = (string)($SETTINGS['upi_id'] ?? 'starpublication@upi');
+$upiName      = (string)($SETTINGS['upi_name'] ?? 'Star Publication');
+function upi_qr_url(string $upi, string $pn, string $amount, string $tn = ''): string {
+    $data = rawurlencode('upi://pay?pa=' . $upi . '&pn=' . $pn . '&am=' . $amount . '&cu=INR' . ($tn !== '' ? '&tn=' . $tn : ''));
+    return 'https://api.qrserver.com/v1/create-qr-code/?size=210x210&data=' . $data;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -212,13 +220,15 @@ $qrLocal = __DIR__ . '/assets/img/company-qr.png';
 
         <div class="flow-card">
           <div class="qr-wrap">
-            <?php if (is_file($qrLocal)): ?>
+            <?php if (is_file($qrCustomFull)): ?>
+              <img src="<?= htmlspecialchars($qrCustom) ?>" alt="Company UPI QR code" width="210" height="210">
+            <?php elseif (is_file($qrLocal)): ?>
               <img src="assets/img/company-qr.png" alt="Company UPI QR code" width="210" height="210">
             <?php else: ?>
-              <img src="https://api.qrserver.com/v1/create-qr-code/?size=210x210&amp;data=<?= rawurlencode('upi://pay?pa=starpublication@upi&pn=Star Publication&am=' . PROCESSING_FEE . '&cu=INR') ?>" alt="Company UPI QR code" width="210" height="210" onerror="this.parentNode.innerHTML='<div class=&quot;qr-fallback&quot;>QR unavailable&lt;/div>'">
+              <img src="<?= upi_qr_url($upiId, $upiName, (string)PROCESSING_FEE, 'File Processing Charge') ?>" alt="Company UPI QR code" width="210" height="210" onerror="this.parentNode.innerHTML='<div class=&quot;qr-fallback&quot;>QR unavailable&lt;/div>'">
             <?php endif; ?>
-            <span class="qr-caption">Star Publication · Company QR</span>
-            <code class="upi-id">starpublication@upi</code>
+            <span class="qr-caption"><?= htmlspecialchars($upiName) ?> · Company QR</span>
+            <code class="upi-id"><?= htmlspecialchars($upiId) ?></code>
           </div>
 
           <form method="post" action="order.php" enctype="multipart/form-data" class="pay-form">
@@ -279,13 +289,15 @@ $qrLocal = __DIR__ . '/assets/img/company-qr.png';
 
         <div class="flow-card">
           <div class="qr-wrap">
-            <?php if (is_file($qrLocal)): ?>
+            <?php if (is_file($qrCustomFull)): ?>
+              <img src="<?= htmlspecialchars($qrCustom) ?>" alt="Company UPI QR code" width="210" height="210">
+            <?php elseif (is_file($qrLocal)): ?>
               <img src="assets/img/company-qr.png" alt="Company UPI QR code" width="210" height="210">
             <?php else: ?>
-              <img src="https://api.qrserver.com/v1/create-qr-code/?size=210x210&amp;data=<?= rawurlencode('upi://pay?pa=starpublication@upi&pn=Star Publication&am=' . GST_AMOUNT . '&cu=INR&tn=GST Payment') ?>" alt="Company UPI QR code" width="210" height="210" onerror="this.parentNode.innerHTML='<div class=&quot;qr-fallback&quot;>QR unavailable&lt;/div>'">
+              <img src="<?= upi_qr_url($upiId, $upiName, (string)GST_AMOUNT, 'GST Payment') ?>" alt="Company UPI QR code" width="210" height="210" onerror="this.parentNode.innerHTML='<div class=&quot;qr-fallback&quot;>QR unavailable&lt;/div>'">
             <?php endif; ?>
-            <span class="qr-caption">Star Publication · Company QR</span>
-            <code class="upi-id">starpublication@upi</code>
+            <span class="qr-caption"><?= htmlspecialchars($upiName) ?> · Company QR</span>
+            <code class="upi-id"><?= htmlspecialchars($upiId) ?></code>
           </div>
 
           <form method="post" action="order.php" enctype="multipart/form-data" class="pay-form">

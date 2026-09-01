@@ -112,6 +112,7 @@ $adminName = htmlspecialchars((string)$_SESSION['admin_name']);
     <div class="dash-user">
       <span class="avatar admin-avatar"><?= strtoupper(mb_substr($adminName, 0, 1)) ?></span>
       <span><strong><?= $adminName ?></strong><small>Administrator</small></span>
+      <a class="btn btn-ok btn-sm" href="settings.php" style="margin-left:10px">⚙ QR / UPI</a>
       <a class="btn btn-danger btn-sm" href="logout.php">Logout</a>
     </div>
   </div>

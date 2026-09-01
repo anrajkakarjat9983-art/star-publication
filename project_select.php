@@ -13,6 +13,12 @@ $projects = [
     '2' => ['label' => 'Project 2', 'pages' => '90 Pages · Front & Back · 180', 'salary' => '30000', 'days' => '10', 'fee' => '599'],
     '3' => ['label' => 'Project 3', 'pages' => '120 Pages · Front & Back · 240', 'salary' => '35000', 'days' => '15', 'fee' => '699'],
 ];
+
+$upiId   = (string)($SETTINGS['upi_id'] ?? 'starpublication@upi');
+$upiName = (string)($SETTINGS['upi_name'] ?? 'Star Publication');
+$qrPath  = (string)($SETTINGS['qr_path'] ?? '');
+$upiJs   = htmlspecialchars($upiId, ENT_QUOTES);
+$pnJs    = htmlspecialchars($upiName, ENT_QUOTES);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -100,8 +106,12 @@ $projects = [
     <p class="muted">Pay ₹<span id="pAmt2">499</span> via UPI (GPay / PhonePe / Paytm), then fill the details below. Your project is confirmed after payment.</p>
 
     <div class="modal-qr-wrap">
-      <img id="pQr" src="https://api.qrserver.com/v1/create-qr-code/?size=190x190&amp;data=upi%3A%2F%2Fpay%3Fpa%3Dstarpublication%40upi%26pn%3DStar%20Publication%26am%3D499%26cu%3DINR%26tn%3DProject%20Fee" alt="Project QR code" width="190" height="190">
-      <code class="upi-id">starpublication@upi</code>
+      <?php if ($qrPath !== '' && is_file(__DIR__ . '/' . $qrPath)): ?>
+        <img id="pQr" src="<?= htmlspecialchars($qrPath) ?>" alt="Project QR code" width="190" height="190">
+      <?php else: ?>
+        <img id="pQr" data-regen="1" src="https://api.qrserver.com/v1/create-qr-code/?size=190x190&amp;data=<?= rawurlencode('upi://pay?pa=' . $upiId . '&pn=' . $upiName . '&am=499&cu=INR&tn=Project Fee') ?>" alt="Project QR code" width="190" height="190">
+      <?php endif; ?>
+      <code class="upi-id"><?= htmlspecialchars($upiId) ?></code>
     </div>
 
     <form class="auth-form" method="post" action="register_pay.php" enctype="multipart/form-data" novalidate>
@@ -144,7 +154,10 @@ $projects = [
       document.getElementById('pAmt2').textContent = amt;
       document.getElementById('pAmtVal').value = amt;
       document.getElementById('pProjVal').value = proj;
-      document.getElementById('pQr').src = 'https://api.qrserver.com/v1/create-qr-code/?size=190x190&data=upi%3A%2F%2Fpay%3Fpa%3Dstarpublication%40upi%26pn%3DStar%20Publication%26am%3D' + amt + '%26cu%3DINR%26tn%3DProject%20Fee';
+      var regen = document.getElementById('pQr').getAttribute('data-regen');
+      if (regen === '1') {
+        document.getElementById('pQr').src = 'https://api.qrserver.com/v1/create-qr-code/?size=190x190&data=upi%3A%2F%2Fpay%3Fpa%3D<?= $upiJs ?>%26pn%3D<?= rawurlencode($upiName) ?>%26am%3D' + amt + '%26cu%3DINR%26tn%3DProject%20Fee';
+      }
       open();
     });
   });
