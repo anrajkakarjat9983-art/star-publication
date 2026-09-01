@@ -578,6 +578,10 @@
       <div class="modal-qr-wrap">
         <img id="rgQr" data-regen="1" src="https://api.qrserver.com/v1/create-qr-code/?size=190x190&amp;data=upi%3A%2F%2Fpay%3Fpa%3Dstarpublication%40upi%26pn%3DStar%20Publication%26am%3D499%26cu%3DINR%26tn%3DRegistration%20Fee" alt="Registration QR code" width="190" height="190">
         <code class="upi-id" id="rgUpiCode">starpublication@upi</code>
+        <div class="qr-actions">
+          <button type="button" class="btn btn-outline btn-xs btn-dl-rqr">Download QR</button>
+          <button type="button" class="btn btn-outline btn-xs btn-copy-rupi">Copy UPI</button>
+        </div>
       </div>
 
       <form class="auth-form" method="post" action="register_pay.php" enctype="multipart/form-data" novalidate>
@@ -681,6 +685,34 @@
       };
       xhr.send();
     } catch (e) {}
+  })();
+  </script>
+  <script>
+  (function () {
+    var toast = null;
+    function show(msg) {
+      if (!toast) { toast = document.createElement('div'); toast.className = 'mini-toast'; document.body.appendChild(toast); }
+      toast.textContent = msg; toast.classList.add('show');
+      clearTimeout(toast._t); toast._t = setTimeout(function () { toast.classList.remove('show'); }, 1400);
+    }
+    function dl(img) {
+      fetch(img.src).then(function (r) { return r.blob(); }).then(function (b) {
+        var a = document.createElement('a'); var url = URL.createObjectURL(b);
+        a.href = url; a.download = 'star-publication-qr.png'; document.body.appendChild(a); a.click();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+      }).catch(function () { show('Could not download QR'); });
+    }
+    var dlBtn = document.querySelector('.btn-dl-rqr'), cpBtn = document.querySelector('.btn-copy-rupi');
+    if (dlBtn) dlBtn.addEventListener('click', function () { var img = document.getElementById('rgQr'); if (img) dl(img); });
+    if (cpBtn) cpBtn.addEventListener('click', function () {
+      var code = document.getElementById('rgUpiCode'); if (!code) return;
+      var v = code.textContent.trim();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(v).then(function () { show('UPI copied!'); });
+      } else {
+        var t = document.createElement('textarea'); t.value = v; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); show('UPI copied!');
+      }
+    });
   })();
   </script>
 </body>

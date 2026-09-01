@@ -221,14 +221,18 @@ function upi_qr_url(string $upi, string $pn, string $amount, string $tn = ''): s
         <div class="flow-card">
           <div class="qr-wrap">
             <?php if (is_file($qrCustomFull)): ?>
-              <img src="<?= htmlspecialchars($qrCustom) ?>" alt="Company UPI QR code" width="210" height="210">
+              <img class="pay-qr" src="<?= htmlspecialchars($qrCustom) ?>" alt="Company UPI QR code" width="210" height="210">
             <?php elseif (is_file($qrLocal)): ?>
-              <img src="assets/img/company-qr.png" alt="Company UPI QR code" width="210" height="210">
+              <img class="pay-qr" src="assets/img/company-qr.png" alt="Company UPI QR code" width="210" height="210">
             <?php else: ?>
-              <img src="<?= upi_qr_url($upiId, $upiName, (string)PROCESSING_FEE, 'File Processing Charge') ?>" alt="Company UPI QR code" width="210" height="210" onerror="this.parentNode.innerHTML='<div class=&quot;qr-fallback&quot;>QR unavailable&lt;/div>'">
+              <img class="pay-qr" src="<?= upi_qr_url($upiId, $upiName, (string)PROCESSING_FEE, 'File Processing Charge') ?>" alt="Company UPI QR code" width="210" height="210" onerror="this.parentNode.innerHTML='<div class=&quot;qr-fallback&quot;>QR unavailable&lt;/div>'">
             <?php endif; ?>
             <span class="qr-caption"><?= htmlspecialchars($upiName) ?> · Company QR</span>
-            <code class="upi-id"><?= htmlspecialchars($upiId) ?></code>
+            <code class="upi-id pay-upi"><?= htmlspecialchars($upiId) ?></code>
+            <div class="qr-actions">
+              <button type="button" class="btn btn-outline btn-xs pay-dl">Download QR</button>
+              <button type="button" class="btn btn-outline btn-xs pay-copy">Copy UPI</button>
+            </div>
           </div>
 
           <form method="post" action="order.php" enctype="multipart/form-data" class="pay-form">
@@ -290,14 +294,18 @@ function upi_qr_url(string $upi, string $pn, string $amount, string $tn = ''): s
         <div class="flow-card">
           <div class="qr-wrap">
             <?php if (is_file($qrCustomFull)): ?>
-              <img src="<?= htmlspecialchars($qrCustom) ?>" alt="Company UPI QR code" width="210" height="210">
+              <img class="pay-qr" src="<?= htmlspecialchars($qrCustom) ?>" alt="Company UPI QR code" width="210" height="210">
             <?php elseif (is_file($qrLocal)): ?>
-              <img src="assets/img/company-qr.png" alt="Company UPI QR code" width="210" height="210">
+              <img class="pay-qr" src="assets/img/company-qr.png" alt="Company UPI QR code" width="210" height="210">
             <?php else: ?>
-              <img src="<?= upi_qr_url($upiId, $upiName, (string)GST_AMOUNT, 'GST Payment') ?>" alt="Company UPI QR code" width="210" height="210" onerror="this.parentNode.innerHTML='<div class=&quot;qr-fallback&quot;>QR unavailable&lt;/div>'">
+              <img class="pay-qr" src="<?= upi_qr_url($upiId, $upiName, (string)GST_AMOUNT, 'GST Payment') ?>" alt="Company UPI QR code" width="210" height="210" onerror="this.parentNode.innerHTML='<div class=&quot;qr-fallback&quot;>QR unavailable&lt;/div>'">
             <?php endif; ?>
             <span class="qr-caption"><?= htmlspecialchars($upiName) ?> · Company QR</span>
-            <code class="upi-id"><?= htmlspecialchars($upiId) ?></code>
+            <code class="upi-id pay-upi"><?= htmlspecialchars($upiId) ?></code>
+            <div class="qr-actions">
+              <button type="button" class="btn btn-outline btn-xs pay-dl">Download QR</button>
+              <button type="button" class="btn btn-outline btn-xs pay-copy">Copy UPI</button>
+            </div>
           </div>
 
           <form method="post" action="order.php" enctype="multipart/form-data" class="pay-form">
@@ -378,5 +386,38 @@ function upi_qr_url(string $upi, string $pn, string $amount, string $tn = ''): s
 })();
 </script>
 <script src="assets/js/main.js" defer></script>
+<script>
+(function () {
+  var toast = null;
+  function show(msg) {
+    if (!toast) { toast = document.createElement('div'); toast.className = 'mini-toast'; document.body.appendChild(toast); }
+    toast.textContent = msg; toast.classList.add('show');
+    clearTimeout(toast._t); toast._t = setTimeout(function () { toast.classList.remove('show'); }, 1400);
+  }
+  function dl(img, name) {
+    fetch(img.src).then(function (r) { return r.blob(); }).then(function (b) {
+      var a = document.createElement('a');
+      var url = URL.createObjectURL(b);
+      a.href = url; a.download = name || 'qr-code.png';
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+    }).catch(function () { show('Could not download QR'); });
+  }
+  document.querySelectorAll('.qr-wrap').forEach(function (w) {
+    var img = w.querySelector('.pay-qr');
+    var code = w.querySelector('.pay-upi');
+    var dlBtn = w.querySelector('.pay-dl'), cpBtn = w.querySelector('.pay-copy');
+    if (dlBtn && img) dlBtn.addEventListener('click', function () { dl(img, 'star-publication-qr.png'); });
+    if (cpBtn && code) cpBtn.addEventListener('click', function () {
+      var v = code.textContent.trim();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(v).then(function () { show('UPI copied!'); });
+      } else {
+        var t = document.createElement('textarea'); t.value = v; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); show('UPI copied!');
+      }
+    });
+  });
+})();
+</script>
 </body>
 </html>

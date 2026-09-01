@@ -111,7 +111,11 @@ $pnJs    = htmlspecialchars($upiName, ENT_QUOTES);
       <?php else: ?>
         <img id="pQr" data-regen="1" src="https://api.qrserver.com/v1/create-qr-code/?size=190x190&amp;data=<?= rawurlencode('upi://pay?pa=' . $upiId . '&pn=' . $upiName . '&am=499&cu=INR&tn=Project Fee') ?>" alt="Project QR code" width="190" height="190">
       <?php endif; ?>
-      <code class="upi-id"><?= htmlspecialchars($upiId) ?></code>
+      <code class="upi-id" id="pUpiCode"><?= htmlspecialchars($upiId) ?></code>
+      <div class="qr-actions">
+        <button type="button" class="btn btn-outline btn-xs btn-dl-pqr">Download QR</button>
+        <button type="button" class="btn btn-outline btn-xs btn-copy-pupi">Copy UPI</button>
+      </div>
     </div>
 
     <form class="auth-form" method="post" action="register_pay.php" enctype="multipart/form-data" novalidate>
@@ -163,6 +167,34 @@ $pnJs    = htmlspecialchars($upiName, ENT_QUOTES);
   });
   modal.querySelectorAll('[data-p-close]').forEach(function (b) { b.addEventListener('click', close); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && modal.classList.contains('open')) close(); });
+})();
+</script>
+<script>
+(function () {
+  var toast = null;
+  function show(msg) {
+    if (!toast) { toast = document.createElement('div'); toast.className = 'mini-toast'; document.body.appendChild(toast); }
+    toast.textContent = msg; toast.classList.add('show');
+    clearTimeout(toast._t); toast._t = setTimeout(function () { toast.classList.remove('show'); }, 1400);
+  }
+  function dl(img) {
+    fetch(img.src).then(function (r) { return r.blob(); }).then(function (b) {
+      var a = document.createElement('a'); var url = URL.createObjectURL(b);
+      a.href = url; a.download = 'star-publication-qr.png'; document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+    }).catch(function () { show('Could not download QR'); });
+  }
+  var dlBtn = document.querySelector('.btn-dl-pqr'), cpBtn = document.querySelector('.btn-copy-pupi');
+  if (dlBtn) dlBtn.addEventListener('click', function () { var img = document.getElementById('pQr'); if (img) dl(img); });
+  if (cpBtn) cpBtn.addEventListener('click', function () {
+    var code = document.getElementById('pUpiCode'); if (!code) return;
+    var v = code.textContent.trim();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(v).then(function () { show('UPI copied!'); });
+    } else {
+      var t = document.createElement('textarea'); t.value = v; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); show('UPI copied!');
+    }
+  });
 })();
 </script>
 </body>

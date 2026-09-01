@@ -179,13 +179,17 @@ $adminName = htmlspecialchars((string)$_SESSION['admin_name']);
 
         <div class="qr-preview">
           <?php if ($qrPath !== '' && file_exists(__DIR__ . '/../' . $qrPath)): ?>
-            <img src="../<?= htmlspecialchars($qrPath) ?>" alt="Current QR" width="130" height="130">
+            <img id="previewQr" src="../<?= htmlspecialchars($qrPath) ?>" alt="Current QR" width="130" height="130">
           <?php else: ?>
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=130x130&amp;data=<?= rawurlencode('upi://pay?pa=' . $upiId . '&pn=Star%20Publication') ?>" alt="Auto QR" width="130" height="130">
+            <img id="previewQr" src="https://api.qrserver.com/v1/create-qr-code/?size=130x130&amp;data=<?= rawurlencode('upi://pay?pa=' . $upiId . '&pn=Star%20Publication') ?>" alt="Auto QR" width="130" height="130">
           <?php endif; ?>
           <div>
-            <strong>Current UPI ID:</strong> <code class="upi-id"><?= htmlspecialchars($upiId) ?></code><br>
+            <strong>Current UPI ID:</strong> <code class="upi-id" id="previewUpi"><?= htmlspecialchars($upiId) ?></code><br>
             <strong>Name:</strong> <?= htmlspecialchars($upiName) ?>
+            <div class="qr-actions" style="justify-content:flex-start;margin-top:10px">
+              <button type="button" class="btn btn-outline btn-xs btn-preview-dl">Download QR</button>
+              <button type="button" class="btn btn-outline btn-xs btn-preview-copy">Copy UPI</button>
+            </div>
           </div>
         </div>
 
@@ -222,6 +226,35 @@ $adminName = htmlspecialchars((string)$_SESSION['admin_name']);
     <a class="back-link" href="index.php">← Back to Dashboard</a>
   </div>
 </main>
+
+<script>
+(function () {
+  var toast = null;
+  function show(msg) {
+    if (!toast) { toast = document.createElement('div'); toast.className = 'mini-toast'; document.body.appendChild(toast); }
+    toast.textContent = msg; toast.classList.add('show');
+    clearTimeout(toast._t); toast._t = setTimeout(function () { toast.classList.remove('show'); }, 1400);
+  }
+  function dl(img) {
+    fetch(img.src).then(function (r) { return r.blob(); }).then(function (b) {
+      var a = document.createElement('a'); var url = URL.createObjectURL(b);
+      a.href = url; a.download = 'star-publication-qr.png'; document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+    }).catch(function () { show('Could not download QR'); });
+  }
+  var dlBtn = document.querySelector('.btn-preview-dl'), cpBtn = document.querySelector('.btn-preview-copy');
+  if (dlBtn) dlBtn.addEventListener('click', function () { var img = document.getElementById('previewQr'); if (img) dl(img); });
+  if (cpBtn) cpBtn.addEventListener('click', function () {
+    var code = document.getElementById('previewUpi'); if (!code) return;
+    var v = code.textContent.trim();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(v).then(function () { show('UPI copied!'); });
+    } else {
+      var t = document.createElement('textarea'); t.value = v; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); show('UPI copied!');
+    }
+  });
+})();
+</script>
 
 </body>
 </html>
