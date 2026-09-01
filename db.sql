@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS users (
   address       VARCHAR(255)    NOT NULL,
   pincode       VARCHAR(10)     NOT NULL,
   password_hash VARCHAR(255)    NOT NULL,
+  project       VARCHAR(20)     DEFAULT NULL,
   created_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -62,6 +63,24 @@ CREATE TABLE IF NOT EXISTS requests (
   created_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_user (user_id),
+  INDEX idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- Registration payments (₹599 paid before account creation)
+-- Screenshots stored in /uploads/payments/
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS registrations (
+  id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id    INT UNSIGNED      DEFAULT NULL,
+  project    VARCHAR(20)       DEFAULT NULL,
+  name       VARCHAR(100)      NOT NULL,
+  phone      VARCHAR(15)       NOT NULL,
+  utr        VARCHAR(50)       NOT NULL,
+  amount     DECIMAL(10,2)     NOT NULL DEFAULT 599.00,
+  screenshot VARCHAR(255)      DEFAULT NULL,
+  status     ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+  created_at TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

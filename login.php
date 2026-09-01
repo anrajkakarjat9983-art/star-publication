@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     session_regenerate_id(true);
                     $_SESSION['user_id'] = $conn->insert_id;
                     $_SESSION['user_name'] = $name;
-                    header('Location: dashboard.php?welcome=1');
+                    header('Location: project_select.php?step=1');
                     exit;
                 }
                 $errors[] = 'Could not save your account. Please try again.';

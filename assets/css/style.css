@@ -419,6 +419,30 @@ h1 em::after, h2 em::after {
 .cert-note { text-align: center; margin-top: 30px; font-size: .85rem; color: var(--muted); }
 @media (min-width: 1024px) { .cert-grid { grid-template-columns: repeat(3, 1fr); } }
 
+/* ---------- Cert Pay button ---------- */
+.cert-pay { margin-top: 14px; }
+
+/* ---------- Modal ---------- */
+.modal { position: fixed; inset: 0; z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
+.modal.open { display: flex; }
+.modal-overlay { position: absolute; inset: 0; background: rgba(8, 20, 48, .55); backdrop-filter: blur(3px); }
+.modal-box {
+  position: relative; width: 100%; max-width: 460px; max-height: 92vh; overflow-y: auto;
+  background: var(--card); border-radius: var(--radius); padding: 30px 28px;
+  box-shadow: var(--shadow-lg); animation: modalIn .25s ease;
+}
+@keyframes modalIn { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
+.modal-x {
+  position: absolute; top: 14px; right: 14px; width: 34px; height: 34px; border: none; border-radius: 50%;
+  background: var(--royal-soft); color: var(--navy-800); cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+}
+.modal-x svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.modal-box h3 { font-family: var(--font-display); color: var(--navy-800); font-size: 1.25rem; margin-bottom: 6px; }
+.modal-box > .muted { font-size: .86rem; margin-bottom: 18px; }
+.modal-qr-wrap { text-align: center; margin-bottom: 22px; }
+.modal-qr-wrap img { margin: 0 auto 10px; border-radius: 12px; border: 1px solid var(--line); }
+.upi-id { display: inline-block; font-family: ui-monospace, Consolas, monospace; font-size: .8rem; color: var(--navy-800); background: var(--royal-soft); padding: 6px 12px; border-radius: 8px; }
+
 /* ---------- CTA band ---------- */
 .cta-band {
   background:

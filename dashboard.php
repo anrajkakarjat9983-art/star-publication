@@ -7,7 +7,7 @@ if (empty($_SESSION['user_id'])) {
 
 require_once __DIR__ . '/config.php';
 
-$stmt = $conn->prepare('SELECT name, email, phone, address, pincode, created_at FROM users WHERE id = ? LIMIT 1');
+$stmt = $conn->prepare('SELECT name, email, phone, address, pincode, project, created_at FROM users WHERE id = ? LIMIT 1');
 $stmt->bind_param('i', $_SESSION['user_id']);
 $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
@@ -95,6 +95,7 @@ $lastReq = $qr->get_result()->fetch_assoc();
           <tr><th scope="row">Mobile Number</th><td><?= htmlspecialchars($user['phone']) ?></td></tr>
           <tr><th scope="row">Address</th><td><?= htmlspecialchars($user['address']) ?></td></tr>
           <tr><th scope="row">Pincode</th><td><?= htmlspecialchars($user['pincode']) ?></td></tr>
+          <tr><th scope="row">Selected Project</th><td><?= !empty($user['project']) ? htmlspecialchars($user['project']) : '<a href="project_select.php?step=1">Choose your project</a>' ?></td></tr>
           <tr><th scope="row">Member Since</th><td><?= date('d M Y, h:i A', strtotime($user['created_at'])) ?></td></tr>
         </tbody>
       </table>

@@ -411,34 +411,37 @@
 
         <div class="cert-grid">
           <article class="cert-card reveal">
-            <span class="cert-stamp">To Be Updated</span>
-            <h3>Certificate of Registration</h3>
+            <span class="cert-stamp">50 Pages Book Front and Back 100</span>
+            <h3>Registration</h3>
             <dl>
-              <div><dt>Registration No.</dt><dd>—</dd></div>
-              <div><dt>Issuing Authority</dt><dd>—</dd></div>
-              <div><dt>Validity</dt><dd>—</dd></div>
+              <div><dt>Registration No.</dt><dd>Project 1</dd></div>
+              <div><dt>Salary Amount</dt><dd>25,000</dd></div>
+              <div><dt>Validity</dt><dd>7 days</dd></div>
             </dl>
-            <p class="cert-status">Awaiting official details</p>
+            <p class="cert-status">Registration charge: ₹499</p>
+            <button class="btn btn-gold btn-sm cert-pay" type="button" data-modal-open data-amount="499">Pay Now</button>
           </article>
           <article class="cert-card reveal delay-1">
-            <span class="cert-stamp">To Be Updated</span>
-            <h3>Trade / Business License</h3>
+            <span class="cert-stamp">90 Pages Book Front and Back 180</span>
+            <h3>Project 2</h3>
             <dl>
-              <div><dt>License No.</dt><dd>—</dd></div>
-              <div><dt>Issuing Authority</dt><dd>—</dd></div>
-              <div><dt>Validity</dt><dd>—</dd></div>
+              <div><dt>Registration No.</dt><dd>Project 2</dd></div>
+              <div><dt>Salary Amount</dt><dd>30,000</dd></div>
+              <div><dt>Validity</dt><dd>10 days</dd></div>
             </dl>
-            <p class="cert-status">Awaiting official details</p>
+            <p class="cert-status">Registration charge: ₹599</p>
+            <button class="btn btn-gold btn-sm cert-pay" type="button" data-modal-open data-amount="599">Pay Now</button>
           </article>
           <article class="cert-card reveal delay-2">
-            <span class="cert-stamp">To Be Updated</span>
-            <h3>Quality Certification</h3>
+            <span class="cert-stamp">120 Pages Book Front and Back 240</span>
+            <h3>Project 3</h3>
             <dl>
-              <div><dt>Certificate No.</dt><dd>—</dd></div>
-              <div><dt>Issuing Authority</dt><dd>—</dd></div>
-              <div><dt>Validity</dt><dd>—</dd></div>
+              <div><dt>Registration No.</dt><dd>Project 3</dd></div>
+              <div><dt>Salary Amount</dt><dd>35,000</dd></div>
+              <div><dt>Validity</dt><dd>15 days</dd></div>
             </dl>
-            <p class="cert-status">Awaiting official details</p>
+            <p class="cert-status">Registration charge: ₹699</p>
+            <button class="btn btn-gold btn-sm cert-pay" type="button" data-modal-open data-amount="699">Pay Now</button>
           </article>
         </div>
         <p class="cert-note reveal">No government logos, seals or badges are displayed on this website because none have been claimed or verified.</p>
@@ -562,8 +565,67 @@
     <svg viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></svg>
   </button>
 
+  <!-- ===================== REGISTRATION PAYMENT MODAL ===================== -->
+  <div class="modal" id="regPayModal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-overlay" data-modal-close></div>
+    <div class="modal-box">
+      <button class="modal-x" type="button" data-modal-close aria-label="Close">
+        <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+      <h3>Registration Payment — ₹<span id="rgAmt">499</span></h3>
+      <p class="muted">Pay ₹<span id="rgAmt2">499</span> via UPI (GPay / PhonePe / Paytm), then fill the details below. After submission you'll be taken to registration.</p>
+
+      <div class="modal-qr-wrap">
+        <img id="rgQr" src="https://api.qrserver.com/v1/create-qr-code/?size=190x190&amp;data=upi%3A%2F%2Fpay%3Fpa%3Dstarpublication%40upi%26pn%3DStar%20Publication%26am%3D499%26cu%3DINR%26tn%3DRegistration%20Fee" alt="Registration QR code" width="190" height="190">
+        <code class="upi-id">starpublication@upi</code>
+      </div>
+
+      <form class="auth-form" method="post" action="register_pay.php" enctype="multipart/form-data" novalidate>
+        <input type="hidden" name="amount" id="rgAmtVal" value="499">
+        <div class="field">
+          <label for="rgName">Full Name *</label>
+          <input type="text" id="rgName" name="name" placeholder="Your full name" required maxlength="100">
+        </div>
+        <div class="field">
+          <label for="rgPhone">Mobile Number *</label>
+          <input type="tel" id="rgPhone" name="phone" placeholder="10-digit mobile number" required pattern="[6-9][0-9]{9}" maxlength="10" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label for="rgUtr">UTR / Transaction Ref No. *</label>
+          <input type="text" id="rgUtr" name="utr" placeholder="e.g. 405512345678" required maxlength="50">
+        </div>
+        <div class="field">
+          <label for="rgShot">Payment Screenshot / Receipt *</label>
+          <input type="file" id="rgShot" name="screenshot" accept=".jpg,.jpeg,.png,.webp,.pdf" required>
+          <span class="input-hint">JPG, PNG, WEBP or PDF · max 5 MB</span>
+        </div>
+        <button class="btn btn-primary btn-block" type="submit">Submit &amp; Continue to Registration</button>
+      </form>
+    </div>
+  </div>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="assets/js/main.js" defer></script>
+  <script>
+  (function () {
+    var modal = document.getElementById('regPayModal');
+    if (!modal) return;
+    function open() { modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); document.body.style.overflow = 'hidden'; }
+    function close() { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); document.body.style.overflow = ''; }
+    document.querySelectorAll('[data-modal-open]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var amt = b.getAttribute('data-amount') || '499';
+        document.getElementById('rgAmt').textContent = amt;
+        document.getElementById('rgAmt2').textContent = amt;
+        document.getElementById('rgAmtVal').value = amt;
+        document.getElementById('rgQr').src = 'https://api.qrserver.com/v1/create-qr-code/?size=190x190&data=upi%3A%2F%2Fpay%3Fpa%3Dstarpublication%40upi%26pn%3DStar%20Publication%26am%3D' + amt + '%26cu%3DINR%26tn%3DRegistration%20Fee';
+        open();
+      });
+    });
+    modal.querySelectorAll('[data-modal-close]').forEach(function (b) { b.addEventListener('click', close); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && modal.classList.contains('open')) close(); });
+  })();
+  </script>
 </body>
 </html>

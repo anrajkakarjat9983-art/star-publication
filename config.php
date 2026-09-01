@@ -44,6 +44,7 @@ if ($conn === null || ($conn instanceof mysqli && $conn->connect_errno)) {
 
 const WAIT_SECONDS   = 1800;                       // 30-minute review window
 const PROCESSING_FEE = 1500;                       // file processing charge (INR)
+const REGISTRATION_FEE = 599;                      // registration charge (INR)
 const GST_AMOUNT     = 2790.01;                    // GST payment (INR)
 const UPLOAD_DIR     = __DIR__ . '/uploads/payments/';
 
@@ -74,10 +75,17 @@ $conn->query(
         address       VARCHAR(255) NOT NULL,
         pincode       VARCHAR(10)  NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
+        project      VARCHAR(20)  DEFAULT NULL,
         created_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
 );
+
+// Migrate older installs: ensure users.project exists
+$upCol = $conn->query("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '" . $conn->real_escape_string(DB_NAME) . "' AND TABLE_NAME = 'users' AND COLUMN_NAME = 'project'");
+if ($upCol && $upCol->num_rows === 0) {
+    $conn->query('ALTER TABLE users ADD COLUMN project VARCHAR(20) DEFAULT NULL AFTER password_hash');
+}
 
 $conn->query(
     'CREATE TABLE IF NOT EXISTS contact_messages (
@@ -128,6 +136,32 @@ $conn->query(
         INDEX idx_req (request_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
 );
+
+$conn->query(
+    'CREATE TABLE IF NOT EXISTS registrations (
+        id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        user_id    INT UNSIGNED DEFAULT NULL,
+        project    VARCHAR(20)  DEFAULT NULL,
+        name       VARCHAR(100) NOT NULL,
+        phone      VARCHAR(15)  NOT NULL,
+        utr        VARCHAR(50)  NOT NULL,
+        amount     DECIMAL(10,2) NOT NULL DEFAULT ' . REGISTRATION_FEE . '.00,
+        screenshot VARCHAR(255) DEFAULT NULL,
+        status     ENUM("pending","approved","rejected") NOT NULL DEFAULT "pending",
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_status (status)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+);
+
+// Migrate older installs: ensure registrations.user_id and registrations.project exist
+$rgUid = $conn->query("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '" . $conn->real_escape_string(DB_NAME) . "' AND TABLE_NAME = 'registrations' AND COLUMN_NAME = 'user_id'");
+if ($rgUid && $rgUid->num_rows === 0) {
+    $conn->query('ALTER TABLE registrations ADD COLUMN user_id INT UNSIGNED DEFAULT NULL AFTER id');
+}
+$rgProj = $conn->query("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '" . $conn->real_escape_string(DB_NAME) . "' AND TABLE_NAME = 'registrations' AND COLUMN_NAME = 'project'");
+if ($rgProj && $rgProj->num_rows === 0) {
+    $conn->query('ALTER TABLE registrations ADD COLUMN project VARCHAR(20) DEFAULT NULL AFTER user_id');
+}
 
 // Seed the default admin account once
 $chk = $conn->query('SELECT COUNT(*) AS c FROM admins');
